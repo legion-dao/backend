@@ -15,6 +15,6 @@ Here we have four different contracts to create the functionality of the legion 
 
  Different ERC 20 contract addresses are associated with different teams. These contracts are spun up by the frontend.
 
- ProposalContract.sol defines the contract that shall be created after a new proposal is made
+ ProposalContract.sol defines the contract that shall be created after a new proposal is made.
 
- LegionDAO defines the legion actions, for example creating a new ProposalContract
+ LegionDAO defines the legion actions, for example creating a new ProposalContract.
