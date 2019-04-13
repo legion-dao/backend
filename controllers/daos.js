@@ -1,6 +1,30 @@
 const fs = require('fs');
 const Web3 = require('web3');
 
+const getDao = async (db, id) => {
+  const result = await db.collection('daos').find({
+    $or: [
+      { name: id },
+      { tokenAddress: id }
+    ]
+  }).toArray();
+
+  let dao = {}
+  if (result.length) {
+    dao = {
+      ...result[0],
+    };
+
+    const players = await db.collection('players').find({
+      dao: dao.name,
+    }).toArray();
+
+    dao.players = players;
+  }
+
+  return dao;
+};
+
 const mintOrganizationToken = async (db, { name, symbol }) => {
   const web3 = new Web3(new Web3.providers.WebsocketProvider('ws://localhost:7545'));
   
@@ -30,5 +54,6 @@ const createDao = async (db, { name, symbol }) => {
 }
 
 module.exports = { 
+  getDao,
   createDao,
 }

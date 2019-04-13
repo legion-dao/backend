@@ -7,7 +7,7 @@ const cors = require('@koa/cors');
 const app = new Koa();
 const router = new Router();
 
-const { createDao } = require('./controllers/daos');
+const { createDao, getDao } = require('./controllers/daos');
 const { createPlayers } = require('./controllers/players');
 
 app.use(bodyParser());
@@ -34,14 +34,8 @@ router.get('/daos', async ctx => {
 });
 
 router.get('/daos/:id', async ctx => {
-  const dao = await ctx.db.collection('daos').find({
-    $or: [
-      { name: ctx.params.id },
-      { tokenAddress: ctx.params.id }
-    ]
-  }).toArray();
-
-  ctx.body = (dao.length) ? dao[0] : [];
+  const dao = await getDao(ctx.db, ctx.params.id);
+  ctx.body = dao;
 });
 
 router.post('/create-dao', async ctx => {
