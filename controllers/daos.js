@@ -37,6 +37,9 @@ const mintOrganizationToken = async (db, { name, symbol }) => {
     arguments: [name, symbol, 18, '0xAB0b6e4eBA3985b31E826202FE0Dd9688620427e'],
   })
     .send({ from: '0xAB0b6e4eBA3985b31E826202FE0Dd9688620427e', gas: 4712388, gasPrice: 100000000000 })
+    .on('transactionHash', transactionHash => {
+      db.collection('daos').updateOne({ name }, { $set: { transaction: transactionHash } });
+    })
     .catch(err => console.log('Shit, something went wrong deploying the org token.', err));
 
   db.collection('daos').updateOne({ name }, { $set: { tokenAddress } });
