@@ -1,6 +1,6 @@
 pragma solidity ^0.5.2;
 
-import './AssociationToken.sol';
+import './OrganizationToken.sol';
 
 contract owned {
   address public owner;
@@ -24,7 +24,7 @@ contract tokenRecipient {
   event receivedTokens(address _from, uint256 _value, address _token, bytes _extraData);
 
   function receiveApproval(address _from, uint256 _value, address _token, bytes memory _extraData) public {
-      AssociationToken t = AssociationToken(_token);
+      OrganizationToken t = OrganizationToken(_token);
       require(t.transferFrom(_from, address(this), _value));
       emit receivedTokens(_from, _value, _token, _extraData);
   }
@@ -35,15 +35,15 @@ contract tokenRecipient {
 }
 
 /**
-* The shareholder association contract itself
+* The shareholder Organization contract itself
 */
-contract Association is owned, tokenRecipient {
+contract Organization is owned, tokenRecipient {
 
   uint public minimumQuorum;
   uint public debatingPeriodInMinutes;
   Proposal[] public proposals;
   uint public numProposals;
-  AssociationToken public sharesTokenAddress;
+  OrganizationToken public sharesTokenAddress;
 
   event ProposalAdded(uint proposalID, address recipient, uint amount, string description);
   event Voted(uint proposalID, bool position, address voter);
@@ -79,7 +79,7 @@ contract Association is owned, tokenRecipient {
     *
     * First time setup
     */
-  constructor(AssociationToken sharesAddress, uint minimumSharesToPassAVote, uint minutesForDebate) payable public {
+  constructor(OrganizationToken sharesAddress, uint minimumSharesToPassAVote, uint minutesForDebate) payable public {
       changeVotingRules(sharesAddress, minimumSharesToPassAVote, minutesForDebate);
   }
 
@@ -93,8 +93,8 @@ contract Association is owned, tokenRecipient {
     * @param minimumSharesToPassAVote proposal can vote only if the sum of shares held by all voters exceed this number
     * @param minutesForDebate the minimum amount of delay between when a proposal is made and when it can be executed
     */
-  function changeVotingRules(AssociationToken sharesAddress, uint minimumSharesToPassAVote, uint minutesForDebate) onlyOwner public {
-      sharesTokenAddress = AssociationToken(sharesAddress);
+  function changeVotingRules(OrganizationToken sharesAddress, uint minimumSharesToPassAVote, uint minutesForDebate) onlyOwner public {
+      sharesTokenAddress = OrganizationToken(sharesAddress);
       if (minimumSharesToPassAVote == 0 ) minimumSharesToPassAVote = 1;
       minimumQuorum = minimumSharesToPassAVote;
       debatingPeriodInMinutes = minutesForDebate;
