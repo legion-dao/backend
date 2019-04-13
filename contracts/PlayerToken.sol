@@ -9,7 +9,7 @@ contract PlayerToken is ERC721Metadata, ERC721Mintable, ERC721Enumerable {
 
   function createPlayerToken(string memory playerName, string memory playerHeight, uint playerNumber, string memory tokenURI) public returns(bool)
   {
-    uint playerTokenId = uint(keccak256(abi.encode(playerName, playerHeight, playerNumber)));
+    uint playerTokenId = uint(keccak256(abi.encodePacked(playerName, playerHeight, playerNumber)));
     _mint(msg.sender, playerTokenId);
     _setTokenURI(playerTokenId, tokenURI);
     return true;
