@@ -7,8 +7,8 @@ const cors = require('@koa/cors');
 const app = new Koa();
 const router = new Router();
 
-const { createDao } = require('./daos');
-const { createPlayers } = require('./players');
+const { createDao } = require('./controllers/daos');
+const { createPlayers } = require('./controllers/players');
 
 app.use(bodyParser());
 app.use(cors());
