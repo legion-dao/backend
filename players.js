@@ -9,6 +9,7 @@ const mintPlayerToken = async (db, { name, height, number }) => {
 
   const tokenId = web3.utils.soliditySha3(name, height, number);
 
+  // This method creates a lot of console noise... ignore :)
   playerToken.methods.createPlayerToken(name, height, number, `http://localhost:8080/players/${tokenId}`)
     .send({ from: '0xAB0b6e4eBA3985b31E826202FE0Dd9688620427e', gas: 400000 }, (err, transaction) => {
       if (err) {
