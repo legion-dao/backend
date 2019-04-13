@@ -20,12 +20,13 @@ const mintPlayerToken = async (db, { name, height, number }) => {
     });
 };
 
-const createPlayers = async (db, players) => {
+const createPlayers = async (db, { dao, players}) => {
   players.forEach(async ({ name, height, number }) => {
     await db.collection('players').insertOne({
       name,
       height,
       number,
+      dao,
     });
 
     mintPlayerToken(db, { name, height, number });

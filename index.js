@@ -38,7 +38,7 @@ router.post('/create-dao', async ctx => {
 
   await createDao(ctx.db, { name, symbol });
 
-  createPlayers(ctx.db, players);
+  createPlayers(ctx.db, { dao: name, players });
 
   ctx.status = 201;
 });
