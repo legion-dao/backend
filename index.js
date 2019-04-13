@@ -33,6 +33,17 @@ router.get('/daos', async ctx => {
   ctx.body = await ctx.db.collection('daos').find().toArray();
 });
 
+router.get('/daos/:id', async ctx => {
+  const dao = await ctx.db.collection('daos').find({
+    $or: [
+      { name: ctx.params.id },
+      { tokenAddress: ctx.params.id }
+    ]
+  }).toArray();
+
+  ctx.body = (dao.length) ? dao[0] : [];
+});
+
 router.post('/create-dao', async ctx => {
   const { name, symbol, players } = ctx.request.body;
 
