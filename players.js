@@ -19,6 +19,18 @@ const mintPlayerToken = async (db, { name, height, number }) => {
     });
 };
 
+const createPlayers = async (db, players) => {
+  players.forEach(async ({ name, height, number }) => {
+    await db.collection('players').insertOne({
+      name,
+      height,
+      number,
+    });
+
+    mintPlayerToken(db, { name, height, number });
+  });
+};
+
 module.exports = {
-  mintPlayerToken,
+  createPlayers,
 };

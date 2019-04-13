@@ -6,7 +6,9 @@ const cors = require('@koa/cors');
 
 const app = new Koa();
 const router = new Router();
-const { mintPlayerToken } = require('./players');
+
+const { createDao } = require('./daos');
+const { createPlayers } = require('./players');
 
 app.use(bodyParser());
 app.use(cors());
@@ -27,23 +29,16 @@ router.get('/', ctx => {
   ctx.body = 'You mades it kid.';
 });
 
+router.get('/daos', async ctx => {
+  ctx.body = await ctx.db.collection('daos').find().toArray();
+});
+
 router.post('/create-dao', async ctx => {
   const { name, symbol, players } = ctx.request.body;
 
-  await ctx.db.collection('daos').insertOne({
-    name,
-    symbol,
-  });
+  await createDao(ctx.db, { name, symbol });
 
-  players.forEach(async ({ name, height, number }) => {
-    await ctx.db.collection('players').insertOne({
-      name,
-      height,
-      number,
-    });
-
-    mintPlayerToken(ctx.db, { name, height, number });
-  });
+  createPlayers(ctx.db, players);
 
   ctx.status = 201;
 });
