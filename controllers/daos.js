@@ -2,19 +2,14 @@ const fs = require('fs');
 const Web3 = require('web3');
 
 const getDao = async (db, id) => {
-  const result = await db.collection('daos').find({
+  const dao = await db.collection('daos').findOne({
     $or: [
       { name: id },
       { tokenAddress: id }
     ]
-  }).toArray();
+  });
 
-  let dao = {}
-  if (result.length) {
-    dao = {
-      ...result[0],
-    };
-
+  if (dao) {
     const players = await db.collection('players').find({
       dao: dao.name,
     }).toArray();
@@ -22,7 +17,7 @@ const getDao = async (db, id) => {
     dao.players = players;
   }
 
-  return dao;
+  return dao || {};
 };
 
 const mintOrganizationToken = async (db, { name, symbol }) => {
@@ -42,7 +37,30 @@ const mintOrganizationToken = async (db, { name, symbol }) => {
     })
     .catch(err => console.log('Shit, something went wrong deploying the org token.', err));
 
-  db.collection('daos').updateOne({ name }, { $set: { tokenAddress } });
+  await db.collection('daos').updateOne({ name }, { $set: { tokenAddress } });
+};
+
+const createTokenSaleContract = async (db, { name }) => {
+  const dao = await db.collection('daos').findOne({ name });
+
+  if (!dao) {
+    return;
+  }
+
+  const web3 = new Web3(new Web3.providers.WebsocketProvider('ws://localhost:7545'));
+  
+  const { abi, bytecode } = JSON.parse(fs.readFileSync('./build/contracts/OrganizationTokenSale.json', 'utf8'));
+  let organizationTokenSale = web3.eth.Contract(abi);
+
+  // Deploys token sale contract
+  const { address: saleAddress } = await organizationTokenSale.deploy({
+    data: bytecode,
+    arguments: [dao.tokenAddress],
+  })
+    .send({ from: '0xAB0b6e4eBA3985b31E826202FE0Dd9688620427e', gas: 4712388, gasPrice: 100000000000 })
+    .catch(err => console.log('Shit, something went wrong deploying the token sale contract.', err));
+
+  db.collection('daos').updateOne({ name }, { $set: { saleAddress } });
 };
 
 const createDao = async (db, { name, symbol }) => {
@@ -51,7 +69,9 @@ const createDao = async (db, { name, symbol }) => {
     symbol,
   });
 
-  mintOrganizationToken(db, { name, symbol });
+  await mintOrganizationToken(db, { name, symbol });
+
+  createTokenSaleContract(db, { name });
 
   return;
 }
