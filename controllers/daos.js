@@ -22,6 +22,7 @@ const getDao = async (db, id) => {
 
 const mintOrganizationToken = async (db, { name, symbol }) => {
   const web3 = new Web3(new Web3.providers.WebsocketProvider('ws://localhost:7545'));
+  const [account] = await web3.eth.getAccounts();
   
   const { abi, bytecode } = JSON.parse(fs.readFileSync('./build/contracts/OrganizationToken.json', 'utf8'));
   let organizationToken = web3.eth.Contract(abi);
@@ -29,9 +30,9 @@ const mintOrganizationToken = async (db, { name, symbol }) => {
   // Mints tokens to Legion which need to be transfered later
   const { address: tokenAddress } = await organizationToken.deploy({
     data: bytecode,
-    arguments: [name, symbol, 18, '0xAB0b6e4eBA3985b31E826202FE0Dd9688620427e'],
+    arguments: [name, symbol, 18, account],
   })
-    .send({ from: '0xAB0b6e4eBA3985b31E826202FE0Dd9688620427e', gas: 4712388, gasPrice: 100000000000 })
+    .send({ from: account, gas: 4712388, gasPrice: 100000000000 })
     .on('transactionHash', transactionHash => {
       db.collection('daos').updateOne({ name }, { $set: { transaction: transactionHash } });
     })
@@ -48,6 +49,7 @@ const createTokenSaleContract = async (db, { name }) => {
   }
 
   const web3 = new Web3(new Web3.providers.WebsocketProvider('ws://localhost:7545'));
+  const [account] = await web3.eth.getAccounts();
   
   const { abi, bytecode } = JSON.parse(fs.readFileSync('./build/contracts/OrganizationTokenSale.json', 'utf8'));
   let organizationTokenSale = web3.eth.Contract(abi);
@@ -57,7 +59,7 @@ const createTokenSaleContract = async (db, { name }) => {
     data: bytecode,
     arguments: [dao.tokenAddress],
   })
-    .send({ from: '0xAB0b6e4eBA3985b31E826202FE0Dd9688620427e', gas: 4712388, gasPrice: 100000000000 })
+    .send({ from: account, gas: 4712388, gasPrice: 100000000000 })
     .catch(err => console.log('Shit, something went wrong deploying the token sale contract.', err));
 
   db.collection('daos').updateOne({ name }, { $set: { saleAddress } });

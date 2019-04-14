@@ -3,6 +3,7 @@ const Web3 = require('web3');
 
 const mintPlayerToken = async (db, { name, height, number }) => {
   const web3 = new Web3(new Web3.providers.WebsocketProvider('ws://localhost:7545'));
+  const [account] = await web3.eth.getAccounts();
   
   const { abi } = JSON.parse(fs.readFileSync('./build/contracts/PlayerToken.json', 'utf8'));
   let playerToken = web3.eth.Contract(abi, '0x0c842539c0Fa1dD1287EE51f96724b98f09C5fa2');
@@ -11,7 +12,7 @@ const mintPlayerToken = async (db, { name, height, number }) => {
 
   // This method creates a lot of console noise... ignore :)
   playerToken.methods.createPlayerToken(name, height, number, `http://localhost:8080/players/${tokenId}`)
-    .send({ from: '0xAB0b6e4eBA3985b31E826202FE0Dd9688620427e', gas: 400000 }, (err, transaction) => {
+    .send({ from: account, gas: 400000 }, (err, transaction) => {
       if (err) {
         console.log('Shit, something went wrong minting the player token.', err);
       }
