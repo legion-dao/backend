@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -23,7 +24,8 @@
     "koa-bodyparser": "^4.2.1",
     "koa-router": "^7.4.0",
     "mongodb": "^3.2.3",
+    "nodemon": "^1.18.11",
     "openzeppelin-solidity": "2.2.0",
-    "web3": "^1.0.0-beta.48"
+    "web3": "1.0.0-beta.48"
   }
 }

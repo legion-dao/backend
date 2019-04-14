@@ -12,10 +12,12 @@ const mintPlayerToken = async (db, { name, height, number }) => {
 
   // This method creates a lot of console noise... ignore :)
   playerToken.methods.createPlayerToken(name, height, number, `http://localhost:8080/players/${tokenId}`)
-    .send({ from: account, gas: 400000 }, (err, transaction) => {
+    .send({ from: account, gas: 400000 }, (err, result) => {
       if (err) {
         console.log('Shit, something went wrong minting the player token.', err);
       }
+
+      const transaction = result.transactionHash || result;
 
       db.collection('players').updateOne({ name }, { $set: { transaction, tokenId } });
     });
