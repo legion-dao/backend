@@ -1,7 +1,7 @@
 pragma solidity ^0.5.2;
 
 import './PlayerToken.sol';
-import './AssociationToken.sol';
+import './OrganizationToken.sol';
 
 /* A new version of this contract will be deployed by 
 the web3 frontend with every new proposition that comes in */
@@ -12,13 +12,15 @@ contract ProposalContract {
     /* the teams who own the players in this contract */
     address[] teamsConcerned;
 
-    PlayerToken players = PlayerToken(/*hardcoded player address*/);
+    PlayerToken players;
     /* These players will go FROM a TO b */
-    PlayerToken[] tradeAtoB;  
+    uint256[] tradeAtoB;  
     /* These players will go FROM b TO a */
-    PlayerToken[] tradeBtoA; 
+    uint256[] tradeBtoA; 
+
     /* ADDRESS of the tokens of the dao that are involved with this transaction  */ 
-    AssociationToken[] teamsConcernedTokens;
+    //teamsConcerned[i].call.value(keccak(asdl;fkja;sd))
+    //OrganizationToken(teamsConcerned[i]).getBalanceOf()
     string description;
     // uint minExecutionDate; <- used in template
     bool executed;
@@ -43,25 +45,28 @@ contract ProposalContract {
         bool inSupport
     );
 
-    constructor (address creator, address[] teamsConcerned, string description, Player[] tradeAtoB, Player[] tradeBtoA) payable public {
-        this.creator = creator;
-        this.teamsConcerned = teamsConcerned;
-        this.description = description;
-        this.teamA = teamsConcerned[0];
-        this.teamB = teamsConcerned[1];
+    constructor (address _creator, address[] _teamsConcerned, string _description, Player[] _tradeAtoB, Player[] _tradeBtoA, address _players, address _org) payable public {
+
+        players = PlayerToken(_players);
+        creator = _creator;
+        teamsConcerned = _teamsConcerned;
+        description = _description;
+        teamA = _teamsConcerned[0];
+        teamB = _teamsConcerned[1];
+
     }
 
-   function vote( uint proposalNumber, bool supportsProposal) public{
+   function vote( bool supportsProposal) public{
        /* check to which team they belong to */ 
        for ( uint i=0; i<teamsConcerned.length; i++) {
-           if ( teamsConcernedToken[i].balanceOf(address(tx.origin)) > 0 
-                && !voted[tx.origin]) {
-               votes.length++;
-               votes[i].inSupport = supportsProposal;
-               votes[i].voter = tx.origin;
-               voted[tx.origin] = true;
-               emit Voted(tx.origin, supportsProposal);
-           }
+           orgToken currOrg = OrganizationToken(teamsConcerned[i]);
+           require(currOrg.balanceOf(address(tx.origin) > 0));
+           require(!voted[tx.origin]);
+           votes.length++;
+           votes[i].inSupport = supportsProposal;
+           votes[i].voter = tx.origin;
+           voted[tx.origin] = true;
+           emit Voted(tx.origin, supportsProposal);
        }
    }
 
@@ -75,7 +80,9 @@ contract ProposalContract {
            uint nay = 0;
 
            for (uint j=0; j <votes.length; j++){
-               uint voteWeight = teamsConcernedToken[i].balanceOf(votes[j].voter);
+
+               OrganizationToken currOrg = OrganizationToken(teamsConcerned[i]);
+               uint voteWeight = currOrg.balanceOf(votes[j].voter);
 
                if(votes[j].inSupport){
                    yea += voteWeight;
