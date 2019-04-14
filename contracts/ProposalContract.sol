@@ -1,8 +1,12 @@
 pragma solidity ^0.5.2;
 
 import './PlayerToken.sol';
-import './OrganizationToken.sol';
+//import './OrganizationToken.sol';
 
+
+contract OrganizationToken {
+    function balanceOf(address owner) public view returns (uint256);
+}
 /* A new version of this contract will be deployed by 
 the web3 frontend with every new proposition that comes in */
 
@@ -45,12 +49,14 @@ contract ProposalContract {
         bool inSupport
     );
 
-    constructor (address _creator, address[] _teamsConcerned, string _description, Player[] _tradeAtoB, Player[] _tradeBtoA, address _players, address _org) payable public {
+    constructor (address _creator, address[] memory _teamsConcerned, string memory _description, uint256[] memory _tradeAtoB, uint256[] memory _tradeBtoA, address _players) payable public {
 
         players = PlayerToken(_players);
         creator = _creator;
         teamsConcerned = _teamsConcerned;
         description = _description;
+        tradeAtoB = _tradeAtoB;
+        tradeBtoA = _tradeBtoA;
         teamA = _teamsConcerned[0];
         teamB = _teamsConcerned[1];
 
@@ -59,8 +65,8 @@ contract ProposalContract {
    function vote( bool supportsProposal) public{
        /* check to which team they belong to */ 
        for ( uint i=0; i<teamsConcerned.length; i++) {
-           orgToken currOrg = OrganizationToken(teamsConcerned[i]);
-           require(currOrg.balanceOf(address(tx.origin) > 0));
+           OrganizationToken currOrg = OrganizationToken(teamsConcerned[i]);
+           require(currOrg.balanceOf(address(tx.origin)) > 0);
            require(!voted[tx.origin]);
            votes.length++;
            votes[i].inSupport = supportsProposal;
