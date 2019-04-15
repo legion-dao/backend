@@ -1,6 +1,22 @@
 const fs = require('fs');
 const Web3 = require('web3');
 
+const getDaos = async (db) => {
+  let daos = await db.collection('daos').find().toArray();
+
+  daos = Promise.all(daos.map(async dao => {
+    const players = await db.collection('players').find({
+      dao: dao.name,
+    }).toArray();
+
+    dao.players = players;
+
+    return dao;
+  }));
+
+  return daos;
+};
+
 const getDao = async (db, id) => {
   const dao = await db.collection('daos').findOne({
     $or: [
@@ -79,6 +95,7 @@ const createDao = async (db, { name, symbol }) => {
 }
 
 module.exports = { 
+  getDaos,
   getDao,
   createDao,
 }

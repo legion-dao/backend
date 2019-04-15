@@ -7,8 +7,9 @@ const cors = require('@koa/cors');
 const app = new Koa();
 const router = new Router();
 
-const { createDao, getDao } = require('./controllers/daos');
+const { createDao, getDao, getDaos } = require('./controllers/daos');
 const { createPlayers } = require('./controllers/players');
+const { createProposal, getProposals } = require('./controllers/proposals');
 
 app.use(bodyParser());
 app.use(cors());
@@ -30,12 +31,11 @@ router.get('/', ctx => {
 });
 
 router.get('/daos', async ctx => {
-  ctx.body = await ctx.db.collection('daos').find().toArray();
+  ctx.body = await getDaos(ctx.db);
 });
 
 router.get('/daos/:id', async ctx => {
-  const dao = await getDao(ctx.db, ctx.params.id);
-  ctx.body = dao;
+  ctx.body = await getDao(ctx.db, ctx.params.id);
 });
 
 router.post('/create-dao', async ctx => {
@@ -50,6 +50,14 @@ router.post('/create-dao', async ctx => {
 
 router.get('/players', async ctx => {
   ctx.body = await ctx.db.collection('players').find().toArray();
+});
+
+router.get('/proposals', async ctx => {
+  ctx.body = await getProposals(ctx.db);
+});
+
+router.post('/proposals/create', async ctx => {
+  ctx.body = await createProposal(ctx.db, ctx.request.body);
 });
 
 app.use(router.routes());

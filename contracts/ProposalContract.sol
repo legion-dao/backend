@@ -116,4 +116,6 @@ contract ProposalContract {
       }
     }
   }
+
+  function() payable external {}
 }
