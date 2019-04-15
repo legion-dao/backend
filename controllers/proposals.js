@@ -33,7 +33,9 @@ const deployProposalContract = async (db, proposal) => {
     .send({ from: account, gas: 4712388, gasPrice: 100000000000, value: 1 })
     .catch(err => console.log('Shit, something went wrong deploying the proposal contract.', err));
 
-  db.collection('proposals').updateOne({ _id }, { $set: { proposalAddress } });
+  await db.collection('proposals').updateOne({ _id }, { $set: { proposalAddress } });
+
+  return await db.collection('proposals').findOne({ _id });
 };
 
 const createProposal = async (db, { creator, aTeam, bTeam, selectedATeamPlayers, selectedBTeamPlayers }) => {
@@ -45,9 +47,9 @@ const createProposal = async (db, { creator, aTeam, bTeam, selectedATeamPlayers,
     selectedBTeamPlayers,
   });
 
-  const proposal = ops[0];
+  let proposal = ops[0];
 
-  await deployProposalContract(db, proposal);
+  proposal = await deployProposalContract(db, proposal);
 
   return proposal;
 };
