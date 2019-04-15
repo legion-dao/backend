@@ -9,7 +9,7 @@ const router = new Router();
 
 const { createDao, getDao, getDaos } = require('./controllers/daos');
 const { createPlayers } = require('./controllers/players');
-const { createProposal, getProposals } = require('./controllers/proposals');
+const { createProposal, getProposal, getProposals, vote } = require('./controllers/proposals');
 
 app.use(bodyParser());
 app.use(cors());
@@ -56,8 +56,16 @@ router.get('/proposals', async ctx => {
   ctx.body = await getProposals(ctx.db);
 });
 
+router.get('/proposals/:address', async ctx => {
+  ctx.body = await getProposal(ctx.db, ctx.params.address);
+});
+
 router.post('/proposals/create', async ctx => {
   ctx.body = await createProposal(ctx.db, ctx.request.body);
+});
+
+router.post('/proposals/vote', async ctx => {
+  ctx.body = await vote(ctx.request.body);
 });
 
 app.use(router.routes());

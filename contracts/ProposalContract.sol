@@ -1,4 +1,5 @@
 pragma solidity ^0.5.2;
+pragma experimental ABIEncoderV2;
 
 import './PlayerToken.sol';
 //import './OrganizationToken.sol';
@@ -66,12 +67,13 @@ contract ProposalContract {
     teamB = _teamsConcerned[1];
   }
 
-  function vote( bool supportsProposal) public {
+  function vote(bool supportsProposal) public {
     /* check to which team they belong to */ 
-    for ( uint i=0; i<teamsConcerned.length; i++) {
+    for (uint i=0; i<teamsConcerned.length; i++) {
       OrganizationToken currOrg = OrganizationToken(teamsConcerned[i]);
-      require(currOrg.balanceOf(address(tx.origin)) > 0);
-      require(!voted[tx.origin]);
+      // TODO: These requires break the thing
+      // require(currOrg.balanceOf(address(tx.origin)) > 0);
+      // require(!voted[tx.origin]);
       votes.length++;
       votes[i].inSupport = supportsProposal;
       votes[i].voter = tx.origin;
@@ -115,6 +117,10 @@ contract ProposalContract {
         players.safeTransferFrom(teamB, teamA, tradeBtoA[i]);
       }
     }
+  }
+
+  function getVotes () public returns(Vote[] memory) {
+    return votes;
   }
 
   function() payable external {}
