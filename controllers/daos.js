@@ -89,6 +89,7 @@ const createDao = async (db, { name, symbol }) => {
 
   await mintOrganizationToken(db, { name, symbol });
 
+  // TODO: Implement ability to buy tokens
   createTokenSaleContract(db, { name });
 
   return;

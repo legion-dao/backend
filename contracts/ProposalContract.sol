@@ -28,7 +28,7 @@ contract ProposalContract {
   string description;
   // uint minExecutionDate; <- used in template
   bool executed;
-  bool proposalPassed;
+  bool public proposalPassed;
   uint numberOfVotes;
 
   address teamA;
@@ -86,19 +86,19 @@ contract ProposalContract {
     executed = true;
     bool passed = true;
 
-    for (uint i=0; i<teamsConcerned.length; i++) {
+    for (uint i=0; i < teamsConcerned.length; i++) {
       /* TODO: insert minimum quorum, uint quorum = 0; */
       uint yea = 0;
       uint nay = 0;
 
-      for (uint j=0; j <votes.length; j++) {
-        OrganizationToken currOrg = OrganizationToken(teamsConcerned[i]);
-        uint voteWeight = currOrg.balanceOf(votes[j].voter);
+      for (uint j=0; j < votes.length; j++) {
+        // OrganizationToken currOrg = OrganizationToken(teamsConcerned[i]);
+        // uint voteWeight = currOrg.balanceOf(votes[j].voter);
 
         if (votes[j].inSupport) {
-          yea += voteWeight;
+          yea += 1;
         } else {
-          nay += voteWeight;
+          nay += 1;
         }
       }
 
@@ -107,20 +107,7 @@ contract ProposalContract {
       }
     }
 
-    if (passed) {
-      /* Transfer ownership of the Player Tokens */
-      for (uint i=0; i<tradeAtoB.length; i++) {
-        players.safeTransferFrom(teamA, teamB, tradeAtoB[i]);
-      }
-
-      for (uint i=0; i<tradeBtoA.length; i++) {
-        players.safeTransferFrom(teamB, teamA, tradeBtoA[i]);
-      }
-    }
-  }
-
-  function getVotes () public returns(Vote[] memory) {
-    return votes;
+    proposalPassed = passed;
   }
 
   function() payable external {}

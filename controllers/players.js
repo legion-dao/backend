@@ -6,7 +6,7 @@ const mintPlayerToken = async (db, { name, height, number }) => {
   const [account] = await web3.eth.getAccounts();
   
   const { abi } = JSON.parse(fs.readFileSync('./build/contracts/PlayerToken.json', 'utf8'));
-  let playerToken = web3.eth.Contract(abi, '0x0c842539c0Fa1dD1287EE51f96724b98f09C5fa2');
+  let playerToken = web3.eth.Contract(abi, '0xE9a77B7C42212c6A713ECEFc95952d6cF776cE0F');
 
   const tokenId = web3.utils.soliditySha3(name, height, number);
 
