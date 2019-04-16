@@ -1,13 +1,27 @@
 const fs = require('fs');
 const Web3 = require('web3');
+const daos = require('./daos.js');
 
 const getProposals = async db => await db.collection('proposals').find().toArray();
 
 const getProposal = async (db, proposalAddress) => await db.collection('proposals').findOne({ proposalAddress });
 
+//console.log()
+
 const deployProposalContract = async (db, proposal) => {
+
+
+
+
+  console.log(proposal)
   // TODO: Hookup the team contracts...
   const { _id, creator, aTeam, bTeam, selectedATeamPlayers, selectedBTeamPlayers } = proposal;
+
+  let dbDaos = await daos.getDaos(db);
+  let teamA = selectedATeamPlayers[0].dao;
+  let teamB = selectedBTeamPlayers[0].dao;
+  let teamAtoken = dbDaos.find(entry => entry.name === teamA).tokenAddress;
+  let teamBtoken = dbDaos.find(entry => entry.name === teamB).tokenAddress;
 
   const web3 = new Web3(new Web3.providers.WebsocketProvider('ws://localhost:7545'));
   const [account] = await web3.eth.getAccounts();
@@ -23,11 +37,13 @@ const deployProposalContract = async (db, proposal) => {
     data: bytecode,
     arguments: [
       creator,
-      [account, account],
+      [teamAtoken, teamBtoken],
       'trade proposal',
       aTeamTokenIds,
       bTeamTokenIds,
-      '0xE9a77B7C42212c6A713ECEFc95952d6cF776cE0F',
+      '0x00ea31e53885685deCdbef84461adA02e9d99290',
+      account, 
+      account,
     ],
   })
     .send({ from: account, gas: 4712388, gasPrice: 100000000000, value: 1 })
@@ -62,7 +78,12 @@ const vote = async (db, { proposal, vote }) => {
   const [account] = await web3.eth.getAccounts();
   
   const { abi } = JSON.parse(fs.readFileSync('./build/contracts/ProposalContract.json', 'utf8'));
+  console.log(account)
+  console.log(vote)
+  console.log(proposal)
+
   let proposalContract = web3.eth.Contract(abi, proposal.proposalAddress);
+ 
 
   // This method creates a lot of console noise... ignore :)
   await proposalContract.methods.vote(vote)

@@ -22,6 +22,10 @@ contract ProposalContract {
   /* These players will go FROM b TO a */
   uint256[] tradeBtoA; 
 
+  /* the actual account that hold the erc721 player token */ 
+  address teamAholder;
+  address teamBholder;
+
   /* ADDRESS of the tokens of the dao that are involved with this transaction  */ 
   //teamsConcerned[i].call.value(keccak(asdl;fkja;sd))
   //OrganizationToken(teamsConcerned[i]).getBalanceOf()
@@ -31,8 +35,8 @@ contract ProposalContract {
   bool public proposalPassed;
   uint numberOfVotes;
 
-  address teamA;
-  address teamB;
+  address public teamA;
+  address public teamB;
 
   Vote[] votes;
 
@@ -55,7 +59,9 @@ contract ProposalContract {
     string memory _description,
     uint256[] memory _tradeAtoB,
     uint256[] memory _tradeBtoA,
-    address _players
+    address _players,
+    address _teamAholder,
+    address _teamBholder
   ) payable public {
     players = PlayerToken(_players);
     creator = _creator;
@@ -65,49 +71,69 @@ contract ProposalContract {
     tradeBtoA = _tradeBtoA;
     teamA = _teamsConcerned[0];
     teamB = _teamsConcerned[1];
+    teamAholder = _teamAholder;
+    teamBholder = _teamBholder;
   }
 
   function vote(bool supportsProposal) public {
+
     /* check to which team they belong to */ 
-    for (uint i=0; i<teamsConcerned.length; i++) {
-      OrganizationToken currOrg = OrganizationToken(teamsConcerned[i]);
-      // TODO: These requires break the thing
-      // require(currOrg.balanceOf(address(tx.origin)) > 0);
-      // require(!voted[tx.origin]);
-      votes.length++;
-      votes[i].inSupport = supportsProposal;
-      votes[i].voter = tx.origin;
-      voted[tx.origin] = true;
-      emit Voted(tx.origin, supportsProposal);
-    }
+    OrganizationToken teamAOrg = OrganizationToken(teamA);
+    OrganizationToken teamBOrg = OrganizationToken(teamB);
+    // TODO: These requires break the thing
+    require(teamAOrg.balanceOf(address(tx.origin)) > 0 || teamBOrg.balanceOf(address(tx.origin)) > 0);
+    require(!voted[tx.origin]);
+    votes.push(Vote( supportsProposal, tx.origin));
+    voted[tx.origin] = true;
+    emit Voted(tx.origin, supportsProposal);
+
   }
 
   function finalizeVoting () public {
     executed = true;
     bool passed = true;
+    OrganizationToken teamAOrg = OrganizationToken(teamA);
+    OrganizationToken teamBOrg = OrganizationToken(teamB);
 
-    for (uint i=0; i < teamsConcerned.length; i++) {
-      /* TODO: insert minimum quorum, uint quorum = 0; */
-      uint yea = 0;
-      uint nay = 0;
+    /* TODO: insert minimum quorum, uint quorum = 0; */
+    uint yea = 0;
+    uint nay = 0;
 
-      for (uint j=0; j < votes.length; j++) {
-        // OrganizationToken currOrg = OrganizationToken(teamsConcerned[i]);
-        // uint voteWeight = currOrg.balanceOf(votes[j].voter);
+    for (uint j=0; j <votes.length; j++) {
 
-        if (votes[j].inSupport) {
-          yea += 1;
-        } else {
-          nay += 1;
+         uint voteWeight = 0;
+         voteWeight += teamAOrg.balanceOf(votes[j].voter);
+         voteWeight += teamBOrg.balanceOf(votes[j].voter);
+
+         if (votes[j].inSupport) {
+            yea += voteWeight;
+         } else {
+            nay += voteWeight;
         }
-      }
-
-      if (nay > yea) {
+    }
+    
+    if (nay > yea) {
         passed = false;
-      }
     }
 
+<<<<<<< Updated upstream
     proposalPassed = passed;
+=======
+    if (passed) {
+      /* Transfer ownership of the Player Tokens */
+      for (uint i=0; i<tradeAtoB.length; i++) {
+        players.safeTransferFrom(teamAholder, teamBholder, tradeAtoB[i]);
+      }
+
+      for (uint i=0; i<tradeBtoA.length; i++) {
+        players.safeTransferFrom(teamBholder, teamAholder, tradeBtoA[i]);
+      }
+    }
+  }
+
+  function getVotes () public returns(Vote[] memory) {
+    return votes;
+>>>>>>> Stashed changes
   }
 
   function() payable external {}
