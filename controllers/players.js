@@ -34,6 +34,7 @@ const createPlayers = async (db, { dao, players}) => {
       height,
       number,
       dao,
+      trades: [],
     });
 
     await mintPlayerToken(db, { name, height, number });

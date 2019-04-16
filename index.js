@@ -52,6 +52,10 @@ router.get('/players', async ctx => {
   ctx.body = await ctx.db.collection('players').find().toArray();
 });
 
+router.get('/players/:id', async ctx => {
+  ctx.body = await ctx.db.collection('players').findOne({ tokenId: ctx.params.id });
+});
+
 router.get('/proposals', async ctx => {
   ctx.body = await getProposals(ctx.db);
 });

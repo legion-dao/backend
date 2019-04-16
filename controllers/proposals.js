@@ -91,7 +91,14 @@ const transferPlayer = async (db, { playerToken, toPlayer, toTeam, fromPlayer, f
         return;
       }
 
-      await db.collection('players').updateOne({ tokenId: fromPlayer.tokenId }, { $set: { playerOwner: toPlayer.playerOwner, dao: toTeam } });
+      const newTrades = fromPlayer.trades || [];
+      newTrades.push({
+        from: fromTeam,
+        to: toTeam,
+        transaction: result,
+      });
+
+      await db.collection('players').updateOne({ tokenId: fromPlayer.tokenId }, { $set: { playerOwner: toPlayer.playerOwner, dao: toTeam, trades: newTrades } });
 
       console.log(`Transferring ${fromPlayer.tokenId} from ${fromTeam} COMPLETE`, result);
 
