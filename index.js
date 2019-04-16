@@ -65,7 +65,7 @@ router.post('/proposals/create', async ctx => {
 });
 
 router.post('/proposals/vote', async ctx => {
-  ctx.body = await vote(ctx.request.body);
+  ctx.body = await vote(ctx.db, ctx.request.body);
 });
 
 app.use(router.routes());

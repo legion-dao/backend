@@ -45,6 +45,8 @@ const createProposal = async (db, { creator, aTeam, bTeam, selectedATeamPlayers,
     bTeam,
     selectedATeamPlayers,
     selectedBTeamPlayers,
+    positiveVotes: 0,
+    negativeVotes: 0,
   });
 
   let proposal = ops[0];
@@ -54,7 +56,7 @@ const createProposal = async (db, { creator, aTeam, bTeam, selectedATeamPlayers,
   return proposal;
 };
 
-const vote = async ({ proposal, vote }) => {
+const vote = async (db, { proposal, vote }) => {
   const web3 = new Web3(new Web3.providers.WebsocketProvider('ws://localhost:7545'));
   const [account] = await web3.eth.getAccounts();
   
@@ -68,18 +70,17 @@ const vote = async ({ proposal, vote }) => {
         console.log('Shit, something went wrong voting on the proposal.', err);
       }
 
-      console.log(result);
+      return;
     });
-  
-  // TODO: Get votes to return
-  await proposalContract.methods.getVotes()
-    .call({ from: account, gas: 4712388, gasPrice: 100000000000 }, (err, result) => {
-      if (err) {
-        console.log('Shit, something went wrong getting votes for a proposal.', err);
-      }
+    
+  // Manually count votes because I am bad at web3 and have no time left
+  if (vote) {
+    await db.collection('proposals').updateOne({ proposalAddress: proposal.proposalAddress }, { $inc: { positiveVotes: 1 } });
+  } else {
+    await db.collection('proposals').updateOne({ proposalAddress: proposal.proposalAddress }, { $inc: { negativeVotes: 1 } });
+  }
 
-      console.log(result);
-    });
+  
 };
 
 module.exports = {
