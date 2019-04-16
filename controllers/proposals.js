@@ -47,7 +47,7 @@ const createProposal = async (db, { creator, aTeam, bTeam, selectedATeamPlayers,
     selectedBTeamPlayers,
     positiveVotes: 0,
     negativeVotes: 0,
-    status: 'open',
+    status: 'Open',
   });
 
   let proposal = ops[0];
@@ -108,7 +108,8 @@ const closeProposal = async (db, { proposal }) => {
       return result;
     });
 
-  await db.collection('proposals').updateOne({ proposalAddress: proposal.proposalAddress }, { $set: { status: 'closed' } });
+  const completedStatus = passed ? 'Passed' : 'Failed';
+  await db.collection('proposals').updateOne({ proposalAddress: proposal.proposalAddress }, { $set: { status: completedStatus } });
 
   if (passed) {
     console.log('The contract passed!');
