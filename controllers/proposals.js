@@ -27,7 +27,7 @@ const deployProposalContract = async (db, proposal) => {
       'trade proposal',
       aTeamTokenIds,
       bTeamTokenIds,
-      '0xE9a77B7C42212c6A713ECEFc95952d6cF776cE0F',
+      '0x30a6439c1e5dD953b15C2f833A4A6a8720B96F0d',
     ],
   })
     .send({ from: account, gas: 4712388, gasPrice: 100000000000, value: 1 })
@@ -82,25 +82,42 @@ const vote = async (db, { proposal, vote }) => {
   }
 };
 
+const transferPlayer = async (db, { playerToken, toPlayer, toTeam, fromPlayer, fromTeam }) => {
+  console.log(`Transferring ${fromPlayer.tokenId} from ${fromTeam}`);
+  await playerToken.methods.transferFrom(fromPlayer.playerOwner, toPlayer.playerOwner, fromPlayer.tokenId)
+    .send({ from: fromPlayer.playerOwner, gas: 4712388, gasPrice: 100000000000 }, async (err, result) => {
+      if (err) {
+        console.log('Shit, something went wrong sending A Team player to B Team.', err);
+        return;
+      }
+
+      await db.collection('players').updateOne({ tokenId: fromPlayer.tokenId }, { $set: { playerOwner: toPlayer.playerOwner, dao: toTeam } });
+
+      console.log(`Transferring ${fromPlayer.tokenId} from ${fromTeam} COMPLETE`, result);
+
+      return result;
+    });
+};
+
 const closeProposal = async (db, { proposal }) => {
   const web3 = new Web3(new Web3.providers.WebsocketProvider('ws://localhost:7545'));
-  const [aTeam, bTeam, legion] = await web3.eth.getAccounts();
+  const [account] = await web3.eth.getAccounts();
   
   const { abi } = JSON.parse(fs.readFileSync('./build/contracts/ProposalContract.json', 'utf8'));
   let proposalContract = web3.eth.Contract(abi, proposal.proposalAddress);
 
   // This method creates a lot of console noise... ignore :)
   await proposalContract.methods.finalizeVoting()
-    .send({ from: legion, gas: 4712388, gasPrice: 100000000000 }, (err, result) => {
+    .send({ from: account, gas: 4712388, gasPrice: 100000000000 }, (err, result) => {
       if (err) {
         console.log('Shit, something went wrong finalizing the proposal.', err);
       }
-      console.log(err, result);
-      return;
+
+      return result;
     });
 
   const passed = await proposalContract.methods.proposalPassed()
-    .call({ from: legion, gas: 4712388, gasPrice: 100000000000 }, (err, result) => {
+    .call({ from: account, gas: 4712388, gasPrice: 100000000000 }, (err, result) => {
       if (err) {
         console.log('Shit, something went wrong finalizing the proposal.', err);
       }
@@ -115,25 +132,16 @@ const closeProposal = async (db, { proposal }) => {
     console.log('The contract passed!');
 
     const { abi } = JSON.parse(fs.readFileSync('./build/contracts/PlayerToken.json', 'utf8'));
-    let playerToken = web3.eth.Contract(abi, '0xE9a77B7C42212c6A713ECEFc95952d6cF776cE0F');
+    let playerToken = web3.eth.Contract(abi, '0x30a6439c1e5dD953b15C2f833A4A6a8720B96F0d');
 
-    playerToken.methods.safeTransferFrom(aTeam, bTeam, proposal.selectedATeamPlayers[0].tokenId)
-      .send({ from: legion, gas: 4712388, gasPrice: 100000000000 }, (err, result) => {
-        if (err) {
-          console.log('Shit, something went wrong sending A Team player to B Team.', err);
-        }
+    const aTeamPlayer = proposal.selectedATeamPlayers[0];
+    const bTeamPlayer = proposal.selectedBTeamPlayers[0];
 
-        console.log(err, result);
-      });
+    // A TEAM --> B TEAM
+    transferPlayer(db, { playerToken, toPlayer: bTeamPlayer, toTeam: proposal.bTeam, fromPlayer: aTeamPlayer, fromTeam: proposal.aTeam });
 
-    playerToken.methods.safeTransferFrom(aTeam, bTeam, proposal.selectedBTeamPlayers[0].tokenId)
-      .send({ from: legion, gas: 4712388, gasPrice: 100000000000 }, (err, result) => {
-        if (err) {
-          console.log('Shit, something went wrong sending A Team player to B Team.', err);
-        }
-
-        console.log(err, result);
-      });
+    // B TEAM --> A TEAM
+    transferPlayer(db, { playerToken, toPlayer: aTeamPlayer, toTeam: proposal.aTeam, fromPlayer: bTeamPlayer, fromTeam: proposal.bTeam });
   }
 };
 
